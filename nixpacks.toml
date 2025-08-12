@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
-cmds = ["cd server", "npm config set legacy-peer-deps true", "npm install"]
+cmds = ["cd server && npm config set legacy-peer-deps true && npm install"]
 
 [start]
 cmd = "cd server && npm start"
