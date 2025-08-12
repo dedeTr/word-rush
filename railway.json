@@ -1,0 +1,42 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd client && npm install && npm run build",
+    "nixpacksPlan": {
+      "providers": [
+        "node"
+      ],
+      "phases": {
+        "setup": {
+          "nixPkgs": ["nodejs_18", "npm-9_x"]
+        },
+        "build": {
+          "cmds": [
+            "cd client",
+            "npm install",
+            "npm run build"
+          ]
+        }
+      },
+      "start": {
+        "cmd": "cd client && npm start"
+      }
+    },
+    "watchPatterns": [
+      "/client/**"
+    ]
+  },
+  "deploy": {
+    "runtime": "V2",
+    "numReplicas": 1,
+    "sleepApplication": true,
+    "multiRegionConfig": {
+      "asia-southeast1-eqsg3a": {
+        "numReplicas": 1
+      }
+    },
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
