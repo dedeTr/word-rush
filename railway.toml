@@ -1,0 +1,11 @@
+# Railway configuration for WordRush multi-service deployment
+# Deploy backend and frontend as separate services
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
