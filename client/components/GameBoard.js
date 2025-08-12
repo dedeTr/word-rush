@@ -12,6 +12,8 @@ export default function GameBoard({ socket, username, isConnected, roomId, onBac
   const [timeLeft, setTimeLeft] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [userAnswerCount, setUserAnswerCount] = useState(0);
+  const [validationMessage, setValidationMessage] = useState('');
+  const [validationType, setValidationType] = useState(''); // 'error', 'warning', 'success'
   // gameStatus is now passed as a prop, no need for local state
 
   // Debug gameStatus changes
@@ -63,7 +65,10 @@ export default function GameBoard({ socket, username, isConnected, roomId, onBac
 
     // Listen for answer rejection
     socket.on('answer-rejected', (data) => {
-      alert(data.reason);
+      // Show server rejection message inline instead of alert
+      setValidationMessage(data.reason);
+      setValidationType('error');
+      console.log('❌ Server rejected answer:', data.reason);
     });
 
     // Listen for players update
@@ -96,11 +101,104 @@ export default function GameBoard({ socket, username, isConnected, roomId, onBac
     }
   }, [timeLeft, gameStatus]);
 
+  // Local requirements validation function
+  const validateAnswerLocally = (answer, round) => {
+    if (!answer || !round || !round.requirements) {
+      return { isValid: false, reason: 'Data tidak lengkap', metRequirements: [] };
+    }
+
+    const trimmedAnswer = answer.trim();
+    if (!trimmedAnswer) {
+      return { isValid: false, reason: 'Jawaban tidak boleh kosong', metRequirements: [] };
+    }
+
+    const metRequirements = [];
+    let hasValidRequirement = false;
+
+    // Check each requirement locally
+    for (const req of round.requirements) {
+      let requirementMet = false;
+
+      switch (req.type) {
+        case 'awalan':
+          requirementMet = trimmedAnswer.toLowerCase().startsWith(req.value.toLowerCase());
+          break;
+        case 'akhiran':
+          requirementMet = trimmedAnswer.toLowerCase().endsWith(req.value.toLowerCase());
+          break;
+        case 'jumlah':
+          requirementMet = trimmedAnswer.length === req.value;
+          break;
+        default:
+          console.warn(`Unknown requirement type: ${req.type}`);
+      }
+
+      if (requirementMet) {
+        metRequirements.push(req.type);
+        hasValidRequirement = true;
+      }
+    }
+
+    // Must meet at least one requirement to be considered valid locally
+    if (!hasValidRequirement) {
+      return { 
+        isValid: false, 
+        reason: 'Jawaban tidak memenuhi syarat apapun', 
+        metRequirements: [] 
+      };
+    }
+
+    return { 
+      isValid: true, 
+      reason: '', 
+      metRequirements 
+    };
+  };
+
   const handleSubmitAnswer = (e) => {
     e.preventDefault();
     if (!userAnswer.trim() || userAnswerCount >= 3 || gameStatus !== 'playing') return;
 
-    socket.emit('submit-answer', { answer: userAnswer.trim() });
+    const trimmedAnswer = userAnswer.trim();
+
+    // Clear previous validation messages
+    setValidationMessage('');
+    setValidationType('');
+
+    // Step 1: Local requirements validation
+    const localValidation = validateAnswerLocally(trimmedAnswer, currentRound);
+    
+    if (!localValidation.isValid) {
+      // Show validation message near input instead of alert
+      setValidationMessage(localValidation.reason);
+      setValidationType('warning');
+      console.log('⚠️ Local validation failed:', localValidation.reason);
+      
+      // Still submit to server as wrong answer (so it gets recorded)
+      socket.emit('submit-answer', { 
+        answer: trimmedAnswer, 
+        clientMetRequirements: [] // Empty since local validation failed
+      });
+    } else {
+      console.log('✅ Local validation passed:', localValidation.reason, 'Met requirements:', localValidation.metRequirements);
+      
+      // Submit to server with validated requirements
+      socket.emit('submit-answer', { 
+        answer: trimmedAnswer, 
+        clientMetRequirements: localValidation.metRequirements 
+      });
+    }
+
+    // Clear input after submission
+    setUserAnswer('');
+    
+    // Clear success message after 2 seconds
+    if (localValidation.isValid) {
+      setTimeout(() => {
+        setValidationMessage('');
+        setValidationType('');
+      }, 2000);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -142,9 +240,6 @@ export default function GameBoard({ socket, username, isConnected, roomId, onBac
           </div>
         </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-2">WordRush</h1>
-        <div className="text-gray-600">
-          Pemain: <strong>{username}</strong>
-        </div>
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -185,6 +280,19 @@ export default function GameBoard({ socket, username, isConnected, roomId, onBac
                     disabled={userAnswerCount >= 3}
                     maxLength={50}
                   />
+                  
+                  {/* Validation Message */}
+                  {validationMessage && (
+                    <div className={`mt-2 p-2 rounded-md text-sm ${
+                      validationType === 'error' ? 'bg-red-100 text-red-700 border border-red-200' :
+                      validationType === 'warning' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                      validationType === 'success' ? 'bg-green-100 text-green-700 border border-green-200' :
+                      'bg-gray-100 text-gray-700 border border-gray-200'
+                    }`}>
+                      {validationMessage}
+                    </div>
+                  )}
+                  
                   <div className="mt-2 text-sm text-gray-600">
                     Jawaban tersisa: <strong>{3 - userAnswerCount}</strong>
                   </div>

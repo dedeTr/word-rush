@@ -9,7 +9,7 @@ const wordSchema = new mongoose.Schema({
   theme: {
     type: String,
     required: true,
-    enum: ['Hewan', 'Buah', 'Negara']
+    enum: ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi']
   },
   normalized: {
     type: String,

@@ -32,7 +32,7 @@ const roundSchema = new mongoose.Schema({
   theme: {
     type: String,
     required: true,
-    enum: ['Hewan', 'Buah', 'Negara']
+    enum: ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi']
   },
   requirements: [{
     type: {
@@ -125,7 +125,7 @@ const roomSchema = new mongoose.Schema({
     },
     themes: [{
       type: String,
-      enum: ['Hewan', 'Buah', 'Negara']
+      enum: ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi']
     }]
   },
   currentRoundNumber: {

@@ -108,7 +108,7 @@ export default function RequirementPanel({ currentRound, gameStatus, timeLeft })
                 timeLeft <= 10 ? 'bg-red-500' : 'bg-blue-500'
               }`}
               style={{ 
-                width: `${Math.max(0, (timeLeft / 60) * 100)}%` 
+                width: `${Math.max(0, (timeLeft / (currentRound?.duration ? currentRound.duration / 1000 : 60)) * 100)}%` 
               }}
             ></div>
           </div>

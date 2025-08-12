@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const redis = require('redis');
+const fs = require('fs');
+const path = require('path');
 const Word = require('../models/Word');
 const Room = require('../models/Room');
 
@@ -53,46 +55,88 @@ class DatabaseService {
     }
   }
 
+  // Helper function to parse CSV data
+  parseCSVData() {
+    try {
+      const csvPath = path.join(__dirname, 'data.csv');
+      console.log('Reading CSV file from:', csvPath);
+      
+      const csvContent = fs.readFileSync(csvPath, 'utf8');
+      // Handle both Windows (\r\n) and Unix (\n) line endings
+      const lines = csvContent.trim().split(/\r?\n/);
+      
+      // Get headers from first line and clean them
+      const headers = lines[0].split(',').map(header => header.trim());
+      console.log('CSV headers:', headers);
+      
+      // Initialize word data object
+      const wordData = {};
+      headers.forEach(header => {
+        wordData[header] = [];
+      });
+      
+      // Parse data rows (skip header)
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(value => value.trim());
+        
+        // Add each non-empty value to its corresponding theme
+        for (let j = 0; j < headers.length && j < values.length; j++) {
+          const value = values[j];
+          if (value && value !== '') {
+            wordData[headers[j]].push(value);
+          }
+        }
+      }
+      
+      // Log statistics
+      console.log('CSV parsing complete:');
+      Object.keys(wordData).forEach(theme => {
+        console.log(`- ${theme}: ${wordData[theme].length} words`);
+      });
+      
+      return wordData;
+    } catch (error) {
+      console.error('Error parsing CSV file:', error);
+      // Fallback to minimal data if CSV parsing fails
+      return {
+        'Hewan': ['Kucing', 'Anjing', 'Gajah'],
+        'Buah': ['Apel', 'Pisang', 'Mangga'],
+        'Negara': ['Indonesia', 'Malaysia', 'Thailand']
+      };
+    }
+  }
+
   async initializeWordData() {
     try {
+      console.log('🔍 Checking word count in database...');
       const wordCount = await Word.countDocuments();
+      console.log(`📊 Current word count: ${wordCount}`);
+      
       if (wordCount === 0) {
-        console.log('Initializing word database...');
+        console.log('🚀 Initializing word database...');
         
-        const wordData = {
-          'Hewan': [
-            // A-Z coverage for animals
-            'Ayam', 'Angsa', 'Anjing', 'Bebek', 'Beruang', 'Burung', 'Cicak', 'Cumi', 'Domba', 'Dolfin', 
-            'Elang', 'Flamingo', 'Gajah', 'Gorila', 'Harimau', 'Hamster', 'Ikan', 'Iguana', 'Jerapah', 'Jaguar',
-            'Kucing', 'Kuda', 'Kambing', 'Lumba', 'Landak', 'Monyet', 'Macan', 'Naga', 'Nyamuk', 'Orang', 'Otter',
-            'Panda', 'Pinguin', 'Quail', 'Rusa', 'Sapi', 'Semut', 'Tikus', 'Tupai', 'Ular', 'Udang', 'Viper',
-            'Walrus', 'Xenops', 'Yak', 'Zebra'
-          ],
-          'Buah': [
-            // A-Z coverage for fruits
-            'Apel', 'Anggur', 'Alpukat', 'Belimbing', 'Buah Naga', 'Ceri', 'Cranberry', 'Durian', 'Delima',
-            'Elderberry', 'Fig', 'Grape', 'Gooseberry', 'Honeydew', 'Jambu', 'Jeruk', 'Kiwi', 'Kelapa', 'Kurma',
-            'Lemon', 'Leci', 'Mangga', 'Melon', 'Nanas', 'Nangka', 'Orange', 'Pepaya', 'Pisang', 'Pir',
-            'Quince', 'Rambutan', 'Strawberry', 'Salak', 'Tomat', 'Ubi', 'Vanilla', 'Watermelon', 'Ximenia',
-            'Yuzu', 'Zaitun'
-          ],
-          'Negara': [
-            // A-Z coverage for countries
-            'Amerika', 'Australia', 'Argentina', 'Brasil', 'Belanda', 'Belgia', 'China', 'Chili', 'Denmark', 'Dominika',
-            'Estonia', 'Ekuador', 'Finlandia', 'Filipina', 'Georgia', 'Ghana', 'Honduras', 'Haiti', 'India', 'Indonesia',
-            'Jepang', 'Jerman', 'Korea', 'Kenya', 'Laos', 'Libya', 'Malaysia', 'Mesir', 'Nepal', 'Nigeria',
-            'Oman', 'Panama', 'Peru', 'Qatar', 'Rusia', 'Rwanda', 'Spanyol', 'Swiss', 'Thailand', 'Turki',
-            'Uruguay', 'Uganda', 'Vietnam', 'Venezuela', 'Wales', 'Yaman', 'Zambia', 'Zimbabwe'
-          ]
-        };
+        // Load data from CSV file dynamically
+        console.log('📄 Parsing CSV data...');
+        const wordData = this.parseCSVData();
+        
+        if (!wordData || Object.keys(wordData).length === 0) {
+          throw new Error('CSV parsing returned empty data');
+        }
 
         const wordsToInsert = [];
         
+        console.log('🔄 Processing word data...');
         for (const [theme, words] of Object.entries(wordData)) {
+          console.log(`Processing theme "${theme}" with ${words.length} words`);
           for (const word of words) {
+            if (!word || word.trim() === '') {
+              console.warn(`Skipping empty word in theme "${theme}"`);
+              continue;
+            }
+            
             const normalized = word.toLowerCase();
             wordsToInsert.push({
-              word,
+              word: word.trim(),
               theme,
               normalized,
               length: normalized.length,
@@ -102,11 +146,23 @@ class DatabaseService {
           }
         }
 
+        console.log(`💾 Inserting ${wordsToInsert.length} words into database...`);
+        if (wordsToInsert.length === 0) {
+          throw new Error('No words to insert - check CSV data');
+        }
+        
         await Word.insertMany(wordsToInsert);
-        console.log(`Inserted ${wordsToInsert.length} words into database`);
+        console.log(`✅ Successfully inserted ${wordsToInsert.length} words into database`);
+        
+        // Verify insertion
+        const finalCount = await Word.countDocuments();
+        console.log(`🎯 Final word count in database: ${finalCount}`);
+      } else {
+        console.log('📚 Word database already initialized');
       }
     } catch (error) {
-      console.error('Error initializing word data:', error);
+      console.error('❌ Error initializing word data:', error.message);
+      console.error('Stack trace:', error.stack);
     }
   }
 
@@ -247,7 +303,7 @@ class DatabaseService {
         gameSettings: {
           roundDuration: 60,
           maxAnswersPerRound: 3,
-          themes: ['Hewan', 'Buah', 'Negara'],
+          themes: ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi'],
           minPlayers: 2,
           maxPlayers: 10,
           autoStart: false

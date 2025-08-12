@@ -71,8 +71,8 @@ async function initializeServer() {
 let activeRooms = new Map(); // roomId -> { players: Map, socketRooms: Set }
 let players = new Map(); // socketId -> { id, username, score, roomId, roundAnswers }
 
-// Game themes and requirements
-const themes = ['Hewan', 'Buah', 'Negara'];
+// Game themes and requirements - expanded from CSV data
+const themes = ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi'];
 const requirements = [
   { type: 'awalan', description: 'Dimulai huruf' },
   { type: 'akhiran', description: 'Diakhiri huruf' },
@@ -223,8 +223,11 @@ async function endGame(roomId) {
 }
 
 // Generate random round with all 3 requirements
-function generateRound() {
-  const theme = themes[Math.floor(Math.random() * themes.length)];
+function generateRound(roomThemes = ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi']) {
+  // Define available letters for prefix/suffix requirements
+  const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+  
+  const theme = roomThemes[Math.floor(Math.random() * roomThemes.length)];
   const awalanLetter = letters[Math.floor(Math.random() * letters.length)];
   const akhiranLetter = letters[Math.floor(Math.random() * letters.length)];
   const targetNumber = Math.floor(Math.random() * 8) + 3; // 3-10 letters
@@ -273,13 +276,13 @@ function generateRound() {
   return round;
 }
 
-// Validate answer using database service - optimized for 300+ users
-async function validateAnswer(answer, round) {
+// Validate answer using database service - only check if word exists in DB
+async function validateAnswer(answer, round, clientMetRequirements = []) {
   const theme = round.theme;
   const requirements = round.requirements;
   
-  console.log(`🔍 Validating "${answer}" for theme: ${theme}`);
-  console.log(`📋 Requirements:`, requirements.map(r => `${r.type}:${r.value} (${r.points}pts)`));
+  console.log(`🔍 Validating "${answer}" for theme: ${theme} (DB existence check only)`);
+  console.log(`📋 Client validated requirements:`, clientMetRequirements);
   
   try {
     // Use database service with Redis caching for fast validation
@@ -287,36 +290,25 @@ async function validateAnswer(answer, round) {
     console.log(`📊 Database validation result for "${answer}": ${isValid}`);
     
     if (!isValid) {
-      console.log(`❌ "${answer}" rejected by database validation`);
+      console.log(`❌ "${answer}" rejected by database - word does not exist`);
       return { isValid: false, points: 0, metRequirements: [] };
     }
     
-    // Calculate points based on which requirements are met
-    const metRequirements = [];
+    // Calculate points based on client-validated requirements
     let totalPoints = 0;
+    const metRequirements = clientMetRequirements || [];
     
+    // Calculate points for requirements that client already validated
     for (const req of requirements) {
-      let requirementMet = false;
-      
-      switch (req.type) {
-        case 'awalan':
-          requirementMet = answer.toLowerCase().startsWith(req.value.toLowerCase());
-          break;
-        case 'akhiran':
-          requirementMet = answer.toLowerCase().endsWith(req.value.toLowerCase());
-          break;
-        case 'jumlah':
-          requirementMet = answer.length === req.value;
-          break;
-      }
-      
-      if (requirementMet) {
-        metRequirements.push(req.type);
-        // Ensure req.points is a valid number to avoid NaN
+      // Check if this requirement type was met according to client
+      const requirementType = req.type;
+      if (metRequirements.includes(requirementType)) {
         const points = typeof req.points === 'number' && !isNaN(req.points) ? req.points : 0;
         totalPoints += points;
       }
     }
+    
+    console.log(`✅ Word exists in DB. Points calculated from client validation: ${totalPoints}`);
     
     return {
       isValid: true,
@@ -632,7 +624,13 @@ io.on('connection', (socket) => {
     const dbRoom = await database.getRoom(player.roomId);
     if (!dbRoom || !dbRoom.currentRound) return;
 
-    const { answer } = answerData;
+    console.log('🔍 Round retrieved from DB:', {
+      startTime: dbRoom.currentRound.startTime,
+      startTimeType: typeof dbRoom.currentRound.startTime,
+      theme: dbRoom.currentRound.theme
+    });
+
+    const { answer, clientMetRequirements } = answerData;
 
     // Check if player has already submitted 3 answers
     if (player.roundAnswers >= 3) {
@@ -651,14 +649,65 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Validate answer using database service
+    // Calculate time elapsed since round start for bonus scoring
+    const currentTime = Date.now();
+    let roundStartTime = dbRoom.currentRound.startTime;
+    let timeElapsed = 0;
+    
+    // Convert Date string/object back to numeric timestamp if needed
+    if (roundStartTime) {
+      if (typeof roundStartTime === 'string' || roundStartTime instanceof Date) {
+        roundStartTime = new Date(roundStartTime).getTime();
+      }
+      
+      if (typeof roundStartTime === 'number' && !isNaN(roundStartTime)) {
+        timeElapsed = (currentTime - roundStartTime) / 1000; // Convert to seconds
+        // Ensure timeElapsed is a valid positive number
+        if (isNaN(timeElapsed) || timeElapsed < 0) {
+          timeElapsed = 0;
+        }
+      } else {
+        console.warn('⚠️ Round start time could not be converted:', dbRoom.currentRound.startTime);
+        timeElapsed = 0;
+      }
+    } else {
+      console.warn('⚠️ Round start time is missing:', roundStartTime);
+      timeElapsed = 0;
+    }
+    
+    console.log(`⏱️ Time calculation debug:`, {
+      currentTime,
+      roundStartTime,
+      timeElapsed,
+      timeElapsedFixed: parseFloat(timeElapsed.toFixed(1))
+    });
+    
+    // Validate answer using database service (only DB existence check)
     console.log(`🎯 Validating "${answer}" against round:`, {
       theme: dbRoom.currentRound.theme,
       roundId: dbRoom.currentRound.id,
-      requirements: dbRoom.currentRound.requirements?.map(r => `${r.type}:${r.value}`)
+      clientValidatedRequirements: clientMetRequirements,
+      timeElapsed: `${timeElapsed.toFixed(1)}s`
     });
-    const validationResult = await validateAnswer(answer, dbRoom.currentRound);
-    const { isValid, points, metRequirements } = validationResult;
+    const validationResult = await validateAnswer(answer, dbRoom.currentRound, clientMetRequirements);
+    let { isValid, points, metRequirements } = validationResult;
+    
+    // Add time-based bonus for correct answers
+    let timeBonus = 0;
+    if (isValid) {
+      if (timeElapsed <= 3) {
+        timeBonus = 15;
+      } else if (timeElapsed <= 5) {
+        timeBonus = 10;
+      } else if (timeElapsed <= 8) {
+        timeBonus = 5;
+      }
+      
+      if (timeBonus > 0) {
+        points += timeBonus;
+        console.log(`⚡ Time bonus: +${timeBonus} points (answered in ${timeElapsed.toFixed(1)}s)`);
+      }
+    }
 
     // Store answer
     const answerRecord = {
@@ -667,6 +716,9 @@ io.on('connection', (socket) => {
       answer,
       isValid,
       points,
+      basePoints: points - timeBonus, // Points from requirements only
+      timeBonus,
+      timeElapsed: parseFloat(timeElapsed.toFixed(1)),
       metRequirements,
       timestamp: new Date()
     };
@@ -797,7 +849,14 @@ async function startNewRound(roomId) {
     }
 
     console.log('Starting new round for room:', roomId);
-    const newRound = generateRound();
+    const roomThemes = dbRoom.gameSettings?.themes || ['Hewan', 'Buah', 'Negara', 'Bunga', 'Warna', 'Profesi'];
+    const newRound = generateRound(roomThemes);
+    
+    console.log('🔍 Round created with startTime:', {
+      startTime: newRound.startTime,
+      startTimeType: typeof newRound.startTime,
+      currentTime: Date.now()
+    });
     
     // Apply room-specific settings to the round
     const roundDuration = (dbRoom.gameSettings?.roundDuration || 60) * 1000; // Convert to milliseconds

@@ -1,0 +1,91 @@
+Hewan,Buah,Negara,Bunga,Warna,Profesi
+Kucing,Apel,Indonesia,Mawar,Merah,Dokter
+Anjing,Pisang,Malaysia,Melati,Biru,Guru
+Gajah,Mangga,Singapura,Anggrek,Kuning,Polisi
+Harimau,Jeruk,Thailand,Tulip,Hijau,Tentara
+Singa,Semangka,Vietnam,Matahari,Ungu,Petani
+Kuda,Melon,Filipina,Daisy,Oranye,Nelayan
+Sapi,Anggur,Brunei,Lavender,Hitam,Pilot
+Kambing,Nanas,Laos,Anyelir,Putih,Pramugari
+Ayam,Durian,Kamboja,Krisan,Abu-abu,Supir
+Bebek,Rambutan,Myanmar,Seruni,Cokelat,Montir
+Babi,Pepaya,Jepang,Teratai,Emas,Pengacara
+Burung,Jambu,Korea Selatan,Lili,Perak,Hakim
+Ikan,Sirsak,Korea Utara,Kamboja,Biru laut,Arsitek
+Paus,Manggis,Cina,Bougenville,Biru muda,Insinyur
+Lumba-lumba,Alpukat,India,Hibiscus,Biru tua,Perawat
+Hiu,Stroberi,Pakistan,Magnolia,Merah muda,Apoteker
+Ular,Blueberry,Bangladesh,Azalea,Hijau toska,Penulis
+Kangguru,Kiwi,Nepal,Camellia,Hijau lumut,Jurnalis
+Koala,Persik,Bhutan,Geranium,Krem,Aktor
+Panda,Pir,Sri Lanka,Peony,Marun,Penyanyi
+Rusa,Delima,Australia,Poppy,Magenta,Pelukis
+Serigala,Ceri,Selandia Baru,Lotus,Cyan,Desainer
+Beruang,Kelapa,Amerika Serikat,Gladiol,Lavender,Fotografer
+Bunglon,Salak,Kanada,Carnation,Peach,Chef
+Kupu-kupu,Langsat,Meksiko,Daffodil,Indigo,Pramusaji
+Lebah,Markisa,Brasil,Freesia,Teal,Barista
+Semut,Nangka,Argentina,Gardenia,Olive,Pemadam kebakaran
+Kelelawar,Plum,Chile,Hyacinth,Coral,Satpam
+Bison,Leci,Peru,Iris,Chocolate,Pengusaha
+Zebra,Belimbing,Kolombia,Begonia,Ivory,Programmer
+Kura-kura,Kedondong,Inggris,Zinnia,Tan,Analis data
+Kadal,naga,Prancis,Snapdragon,Beige,Manajer
+Katak,Sawo,Jerman,Marigold,Amber,Akuntan
+Flamingo,Kismis,Italia,Petunia,Mint,Sekretaris
+Merpati,Blackberry,Spanyol,Cyclamen,Rose,Marketing
+Elang,Aprikot,Belanda,Foxglove,Plum,Editor
+Rajawali,Kurma,Swiss,Anemone,Salmon,Penerjemah
+Burung hantu,Zaitun,Rusia,Buttercup,Navy,Ilmuwan
+Burung merak,Tomat,Ukraina,Calla,Lime,Peneliti
+Kepiting,Jeruk bali,Turki,Clematis,Sky blue,Petugas kebersihan
+Tapir,Kasturi,Swedia,Amaryllis,Aquamarine,Pilot helikopter
+Musang,ara,Norwegia,Aster,Turquoise,Pemandu wisata
+Landak,kersen,Denmark,Bellflower,Burgundy,Ahli gizi
+Oposum,arbei,Finlandia,Bluebell,Charcoal,Ahli bedah
+Armadillo,bidara,Islandia,Camomile,Khaki,Psikiater
+Gorila,kecapi,Polandia,Cornflower,Mustard,Psikolog
+Simpanse,kesemek,Austria,Dahlia,Rust,Tukang kayu
+Orangutan,mundu,Hungaria,Edelweiss,Seafoam,Tukang batu
+Lemur,menteng,Ceko,Forget-me-not,Slate,Tukang listrik
+Walrus,gandaria,Slovakia,Hellebore,Steel blue,Tukang ledeng
+Anjing laut,rukem,Slovenia,Honeysuckle,Tomato,Tukang kebun
+Penyu,sentul,Kroasia,Jasmine liar,Violet,Penata rambut
+Belut,kecubung,Serbia,Kalanchoe,Azure,Make-up artist
+Gurita,matoa,Bulgaria,Lupin,Blush,Penata busana
+Cumi-cumi,sukun,Rumania,Morning glory,Brick red,Penyiar
+Bunglon air,kedawung,Yunani,Nemophila,Canary yellow,Produser
+Katak pohon,kelubi,Siprus,Osteospermum,Celadon,Sutradara
+Burung beo,rambai,Mesir,Phlox,Cerulean,Penulis skenario
+Burung kenari,keranji,Maroko,Primrose,Champagne,Animator
+Burung jalak,gandang,Tunisia,Queen Anne's lace,Chartreuse,Ilustrator
+Burung nuri,makasar,Aljazair,Ranunculus,Cinnamon,Pengembang game
+Kakatua,talok,Libya,Scabiosa,Claret,DevOps engineer
+Iguana,sagu,Afrika Selatan,Sweet pea,Copper,Data scientist
+Komodo,buni,Nigeria,Thistle,Denim,Machine learning engineer
+Banteng,lakum,Ghana,Verbena,Eggplant,AI researcher
+Kelinci,lobi-lobi,Kenya,Wisteria,Emerald,Ahli forensik
+Hamster,ceremai,Tanzania,Yarrow,Fuchsia,Penyelam
+Tikus,kranji,Uganda,Yucca,Honeydew,Penjelajah
+Marmut,gandum,Ethiopia,Zephyranthes,Jade,Petualang
+Otter,apel malang,Sudan,Snowdrop,Lavender blush,Astronot
+Ferret,yuzu,Irak,Crocus,Lemon,Pembalap mobil
+Dingo,,Iran,Fox tail,Lilac,Pembalap motor
+Puma,,Suriah,Balsam,Mahogany,Pemain sepak bola
+Jaguar,,Yordania,Balloon flower,Mulberry,Pemain basket
+Macan tutul,,Israel,Cape leadwort,Ochre,Pemain tenis
+Lynx,,Arab Saudi,Coreopsis,Onyx,Pelatih
+Caracal,,Uni Emirat Arab,Cosmos,Papaya whip,Pengamat cuaca
+Cheetah,,Qatar,Dusty miller,Pear,Ahli geologi
+Serigala kutub,,Kuwait,Goldenrod,Periwinkle,Ahli biologi
+Burung kolibri,,Bahrain,Heliconia,Persian blue,Ahli astronomi
+Burung camar,,,,Coklat,Ahli kimia
+Burung pelikan,,,,,Ahli fisika
+Burung bangau,,,,,
+Burung cendrawasih,,,,,
+Burung kenyalang,,,,,
+Burung kasuari,,,,,
+Burung kiwi,,,,,
+Burung albatros,,,,,
+Burung elang laut,,,,,
+Dinosaurus,,,,,

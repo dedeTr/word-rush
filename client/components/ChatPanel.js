@@ -8,6 +8,24 @@ export default function ChatPanel({ answers }) {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [answers]);
 
+  // Debug logging for answers
+  useEffect(() => {
+    if (answers.length > 0) {
+      console.log('📊 ChatPanel received answers:');
+      answers.forEach((a, index) => {
+        console.log(`  Answer ${index}:`, {
+          username: a.username,
+          answer: a.answer,
+          timeElapsed: a.timeElapsed,
+          timeElapsedType: typeof a.timeElapsed,
+          timeBonus: a.timeBonus,
+          points: a.points,
+          fullObject: a
+        });
+      });
+    }
+  }, [answers]);
+
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('id-ID', { 
@@ -40,9 +58,6 @@ export default function ChatPanel({ answers }) {
                   <span className="font-medium text-sm">
                     {answer.username}
                   </span>
-                  <span className="text-xs opacity-75">
-                    {formatTime(answer.timestamp)}
-                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">
@@ -51,7 +66,19 @@ export default function ChatPanel({ answers }) {
                   <div className="flex items-center space-x-2">
                     {answer.isValid ? (
                       <>
-                        <span className="text-xs font-medium">+{answer.points}</span>
+                        <div className="text-xs font-medium text-right">
+                          <div className="text-green-700 font-bold">+{answer.points}</div>
+                          {answer.timeBonus > 0 && (
+                            <div className="flex items-center justify-end space-x-1 mt-1">
+                              <span className="text-xs bg-gradient-to-r from-orange-400 to-red-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
+                                ⚡+{answer.timeBonus}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {answer.timeElapsed}s
+                              </span>
+                            </div>
+                          )}
+                        </div>
                         <span className="text-lg">✅</span>
                       </>
                     ) : (
@@ -72,9 +99,9 @@ export default function ChatPanel({ answers }) {
             <span>✅ Benar</span>
             <span>❌ Salah</span>
           </div>
-          <p className="mt-1 text-center">
-            Total jawaban: <strong>{answers.length}</strong>
-          </p>
+          <div className="mt-1 text-center">
+            <p>Total jawaban: <strong>{answers.length}</strong></p>
+          </div>
         </div>
       </div>
     </div>
