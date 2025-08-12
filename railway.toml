@@ -1,11 +1,16 @@
-# Railway configuration for WordRush multi-service deployment
-# Deploy backend and frontend as separate services
+# Railway configuration for WordRush backend service
 
 [build]
 builder = "nixpacks"
+buildCommand = "cd server && npm install"
 
 [deploy]
+startCommand = "cd server && npm start"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+
+[deploy.variables]
+NODE_ENV = "production"
+PORT = "5000"
