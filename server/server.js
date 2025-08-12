@@ -9,13 +9,25 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: [
+      "http://localhost:3000",
+      "https://word-rush.up.railway.app",
+      process.env.CLIENT_URL
+    ].filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://word-rush.up.railway.app",
+    process.env.CLIENT_URL
+  ].filter(Boolean),
+  credentials: true
+}));
 app.use(express.json());
 
 // Utility functions
