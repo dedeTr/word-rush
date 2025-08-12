@@ -27,7 +27,7 @@ export default function Home() {
     }
     
     // Initialize socket connection
-    const newSocket = io(process.env.NODE_ENV === 'production' ? 'http://localhost:5000' : 'http://localhost:5000');
+    const newSocket = io(process.env.SERVER_URL);
     setSocket(newSocket);
 
     // Connection status listeners

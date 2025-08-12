@@ -6,6 +6,9 @@ const nextConfig = {
   experimental: {
     outputFileTracingRoot: undefined,
   },
+  env: {
+    SERVER_URL: process.env.SERVER_URL,
+  },
 }
 
 module.exports = nextConfig
